@@ -10,7 +10,7 @@
       <tbody>
         <tr v-for="key in Phones" :key="key.number">
           <td>
-            <a href="#">{{ key.number }}</a>
+            <a href="#" @click="selectPhone(key)">{{ key.number }}</a>
           </td>
           <td>{{ key.name }}</td>
           <td>
@@ -91,6 +91,15 @@ const DELETE_PHONE_MUTATION = gql`
   }
 `;
 
+const UPDATE_PHONE_MUTATION = gql`
+  mutation($id: ID!, $number: String!, $name: String!) {
+    updatePhoneByID(id: $id, number: $number, name: $name) {
+      ...Phone
+    }
+  }
+  ${fragment}
+`;
+
 export default {
   name: "App",
   data() {
@@ -150,7 +159,31 @@ export default {
         });
       }
     },
-    updatePhone() {}
+    // эта функция заполняет поля ввода в форме редактирования
+    selectPhone(input) {
+      this.id = input.id;
+      this.number = input.number;
+      this.name = input.name;
+      this.$refs.number.focus();
+    },
+    //в реализации этого метода используются в качестве параметров поля раздельно
+    // это не обязательно, просто в качестве примера. При добавлении объект, а тут поля
+    updatePhone() {
+      this.$apollo.mutate({
+        mutation: UPDATE_PHONE_MUTATION,
+        variables: {
+          id: this.id,
+          number: this.number,
+          name: this.name
+        },
+        refetchQueries: [
+          {
+            query: ALL_PHONES_QUERY
+          }
+        ]
+      });
+      this.clearForm();
+    }
   }
 };
 </script>
